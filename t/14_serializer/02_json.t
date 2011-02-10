@@ -5,7 +5,7 @@ use Dancer;
 
 plan skip_all => "JSON is needed to run this tests"
     unless Dancer::ModuleLoader->load('JSON');
-plan tests => 17;
+plan tests => 20;
 
 eval {
     setting serializer => 'FooBar';
@@ -73,3 +73,27 @@ ok !$warn, 'no deprecation warning';
 
 to_json({foo => 'bar'}, indent => 0);
 ok $warn, 'deprecation warning';
+
+
+# Test a real application with the Serializer
+
+{
+    use Dancer;
+    set serializer => 'JSON';
+    set environment => 'testing';
+
+    get "/data" => sub {
+        {
+            foo => 42,
+        }
+    };
+}
+
+use Dancer::Test;
+my $resp = dancer_response GET => '/data';
+
+is $resp->{status}, 200, "status is 200";
+
+my %headers = @{$resp->headers_to_array};
+is $headers{'Content-Type'}, 'application/json', "content type is set";
+is $resp->{content}, '{"foo":42}', "response looks good";
