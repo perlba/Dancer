@@ -54,10 +54,10 @@ sub import {
     my ($package, $script) = caller;
     $class->export_to_level(1, $class, @EXPORT);
 
-    # set a default session engine for tests
-    setting 'session' => 'simple';
+
     Dancer::_init($options{appdir});
     Dancer::Config->load;
+    _init_testing_environment();
 }
 
 # Route Registry
@@ -224,6 +224,13 @@ sub _get_handler_response {
     my ($method, $path, $params) = @$req;
     my $request = Dancer::Request->new_for_request($method => $path, $params);
     return Dancer::Handler->handle_request($request);
+}
+
+sub _init_testing_environment {
+    setting 'environment' => 'testing';
+    setting 'session'     => 'simple';
+    setting 'logger'      => 'Test';
+    setting 'log'         => 'debug';
 }
 
 1;
